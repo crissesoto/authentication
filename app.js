@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // middleware for hashing passwords
-const secret = process.env.SOME_LONG_UNGUESSABLE_STRING;
+const secret = "testestestest" || process.env.SOME_LONG_UNGUESSABLE_STRING;
 
 userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] });
 
