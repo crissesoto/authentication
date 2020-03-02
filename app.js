@@ -1,9 +1,11 @@
 //jshint esversion:6
+require('dotenv').config()
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 const encrypt = require('mongoose-encryption');
+
 
 const app = express();
 app.use(bodyParser.urlencoded({extended:true}));
@@ -27,9 +29,9 @@ const userSchema = new mongoose.Schema({
 
 });
 
+// key to encrypt DB
+const secret = process.env.USER_SECRET;
 // middleware for hashing passwords
-const secret = "testestestest" || process.env.SOME_LONG_UNGUESSABLE_STRING;
-
 userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] });
 
 //create model
@@ -58,10 +60,10 @@ app.route('/login')
             if(foundUser.password === data.password){
                 res.render("secrets.ejs")
             }else{
-                res.send("could found match")
+                res.status(400).send("could found match")
             }
         }else{
-            res.send("Not such user found!", err)
+            res.status(400).send("Not such user found!")
         }
 
       });
