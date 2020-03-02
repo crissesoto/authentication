@@ -11,8 +11,12 @@ are able to access the secrets page.
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+   * "body-parser": "^1.19.0",
+   * "dotenv": "^8.2.0",
+   * "ejs": "^3.0.1",
+   * "express": "^4.17.1",
+   * "mongoose": "^5.9.2",
+   * "mongoose-encryption": "^2.0.2"
 
 ### Installing
 
@@ -24,7 +28,10 @@ are able to access the secrets page.
 * How to run the program
 * Step-by-step bullets
 ```
-code blocks for commands
+npm install
+```
+```
+npm start
 ```
 
 ## Authors
