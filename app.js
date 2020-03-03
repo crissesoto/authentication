@@ -4,8 +4,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require('mongoose-encryption');
-
+//const encrypt = require('mongoose-encryption');
+const md5 = require('md5');
 
 const app = express();
 app.use(bodyParser.urlencoded({extended:true}));
@@ -30,9 +30,11 @@ const userSchema = new mongoose.Schema({
 });
 
 // key to encrypt DB
-const secret = process.env.USER_SECRET;
+//let secret = process.env.USER_SECRET;
 // middleware for hashing passwords
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] });
+//userSchema.plugin(encrypt, { secret: process.env.USER_SECRET, encryptedFields: ['password'] });
+
+
 
 //create model
 const User = mongoose.model('User', userSchema );
@@ -57,10 +59,10 @@ app.route('/login')
           
         console.log(foundUser)
         if(foundUser){
-            if(foundUser.password === data.password){
+            if(foundUser.password === md5(data.password)){
                 res.render("secrets.ejs")
             }else{
-                res.status(400).send("could found match")
+                res.status(400).send("credentials don't match")
             }
         }else{
             res.status(400).send("Not such user found!")
@@ -81,7 +83,7 @@ app.route('/register')
 
         const newUser = new User({ 
             email: data.email,
-            password: data.password
+            password: md5(data.password)
           });
 
         newUser.save(function (err) {
