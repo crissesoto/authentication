@@ -5,7 +5,10 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 //const encrypt = require('mongoose-encryption');
-const md5 = require('md5');
+//const md5 = require('md5');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 
 const app = express();
 app.use(bodyParser.urlencoded({extended:true}));
@@ -46,31 +49,6 @@ app.route('/')
         res.render('home.ejs');
     })
 
-// LOGIN PAGE
-app.route('/login')
-    .get(function (req, res) {
-        res.render('login.ejs');
-    })
-    .post(function (req, res) {
-      const data = req.body;
-      console.log(data)
-      
-      User.findOne({email: data.email}).exec(function (err, foundUser) {
-          
-        console.log(foundUser)
-        if(foundUser){
-            if(foundUser.password === md5(data.password)){
-                res.render("secrets.ejs")
-            }else{
-                res.status(400).send("credentials don't match")
-            }
-        }else{
-            res.status(400).send("Not such user found!")
-        }
-
-      });
-
-    })
 
 // REGISTER PAGE
 app.route('/register')
@@ -81,19 +59,61 @@ app.route('/register')
         const data = req.body;
         console.log(data)
 
-        const newUser = new User({ 
-            email: data.email,
-            password: md5(data.password)
-          });
 
-        newUser.save(function (err) {
-            if(err){
-                console.log("Could not save new user: " + err)
+        const myPlaintextPassword = data.password;
+        
+        bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+            // Store hash in your password DB.
+            if(!err){
+                const newUser = new User({ 
+                    email: data.email,
+                    password: hash
+                  });
+
+                newUser.save(function (err) {
+                if(err){
+                    console.log("Could not save new user: " + err)
+                }else{
+                    res.render('secrets.ejs')
+                }
+            })
             }else{
-                res.render('secrets.ejs')
+                console.log(err)
+            }
+        });
+    })
+
+
+
+// LOGIN PAGE
+app.route('/login')
+    .get(function (req, res) {
+        res.render('login.ejs');
+    })
+    .post(function (req, res) {
+      const data = req.body;
+      console.log(data)
+
+        User.findOne({email: data.email}).exec(function (err, foundUser) {
+            if(!err){
+                if(foundUser){
+                    bcrypt.compare(data.password, foundUser.password, function(err, result) {
+                        if(result === true){
+                            res.render("secrets.ejs") 
+                        }else{
+                            res.status(400).send("credentials don't match")
+                        }
+                    });
+                }else{
+                    res.status(400).send("Not such user found!")
+                }
+            }else{
+                console.log(err)
             }
         })
     })
+    
+
 // SECRETS PAGE
 app.route('/secrets')
     .get(function (req, res) {
@@ -118,4 +138,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, function () {
     console.log(`Server started at port: ${PORT}`);
-})
+});
